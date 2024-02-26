@@ -37,20 +37,20 @@ fun calculateCommission(cardType: String = "Мир", sumPreviousTransfers: Int =
         "Mastercard" -> {
             val remainMastercardMonthLimit = mastercardMonthLimit - sumPreviousTransfers
             val remainMastercardCurrentMonthLimit = remainMastercardMonthLimit - transferAmount
-            val commissionToAmount = if (remainMastercardMonthLimit >= mastercardMonthLimit) {
-                return 0
-            } else if (remainMastercardCurrentMonthLimit > 0) {
-                transferAmount - remainMastercardCurrentMonthLimit
-            } else {
+            val commissionToAmount = if (remainMastercardMonthLimit < 0) {
                 transferAmount
+            } else if (remainMastercardCurrentMonthLimit > 0) {
+                return 0
+            } else {
+                totalMonthTransfers - mastercardMonthLimit
             }
 
             val commission = if (commissionToAmount > 0) {
                 if (totalMonthTransfers <= mastercardMonthLimit) {
                     return 0
                 } else {
-                    val commissionToExceedAmount = commissionToAmount - mastercardMonthLimit
-                    val commissionAmount = (mastercardComissionByLimit * commissionToExceedAmount + mastercardComissionFixed).toInt()
+                    val commissionAmount =
+                        (mastercardComissionByLimit * commissionToAmount + mastercardComissionFixed).toInt()
                     commissionAmount
                 }
             } else {
@@ -58,10 +58,12 @@ fun calculateCommission(cardType: String = "Мир", sumPreviousTransfers: Int =
             }
             return commission
         }
+
         "Visa" -> {
             val commission = (transferAmount * visaCommission).toInt().coerceAtLeast(visaCommissionMin)
             return commission
         }
+
         "Мир" -> return 0
         else -> {
             println("Не поддерживаемая платежная система")
